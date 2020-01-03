@@ -535,6 +535,16 @@ public class PluginManager {
         JSONObject pluginInfo = (JSONObject) plugins.get(plugin.getName());
 
         if (ucJson.equals(pluginInfoJson)) {
+            //if the version contains a '+' we need search the minimum acceptable version
+            if (plugin.getVersion().toString().contains("+")) {
+                VersionNumber candidate = pluginInfo.keySet().stream()
+                    .map(version -> new VersionNumber(version))
+                    .filter(version -> version.isNewerThanOrEqualTo(plugin.getVersion()))
+                    .sorted().findFirst().orElse(null);
+                if(candidate != null) {
+                    plugin.setVersion(candidate);
+                }
+            }
             //plugin-versions.json has a slightly different structure than other update center json
             if (pluginInfo.has(plugin.getVersion().toString())) {
                 JSONObject specificVersionInfo = pluginInfo.getJSONObject(plugin.getVersion().toString());
